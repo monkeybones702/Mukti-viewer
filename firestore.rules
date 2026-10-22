@@ -1,0 +1,148 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidPreset(data) {
+      return data.id is string && isValidId(data.id) &&
+             data.userId is string && data.userId == request.auth.uid &&
+             data.name is string && data.name.size() >= 1 && data.name.size() <= 100 &&
+             data.description is string && data.description.size() <= 500 &&
+             data.gridColumns is int && data.gridColumns >= 1 && data.gridColumns <= 5 &&
+             data.gridRows is int && data.gridRows >= 1 && data.gridRows <= 10 &&
+             data.fitEntirePhone is bool &&
+             data.proportionalZoom is bool &&
+             data.masterAudioMuted is bool &&
+             data.windowCount is int && data.windowCount >= 1 && data.windowCount <= 25 &&
+             data.windowsJson is string && data.windowsJson.size() >= 2 && data.windowsJson.size() <= 50000 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidHealthIncident(data) {
+      return data.id is string && isValidId(data.id) &&
+             data.userId is string && data.userId == request.auth.uid &&
+             data.windowId is string && data.windowId.size() >= 1 && data.windowId.size() <= 128 &&
+             data.windowTitle is string && data.windowTitle.size() >= 1 && data.windowTitle.size() <= 120 &&
+             data.streamUrl is string && data.streamUrl.size() >= 1 && data.streamUrl.size() <= 2048 &&
+             data.status is string && data.status in ['HEALTHY', 'FROZEN', 'DROPPED', 'RECOVERING', 'RECOVERED'] &&
+             data.reason is string && data.reason.size() >= 1 && data.reason.size() <= 500 &&
+             data.recoveryAction is string && data.recoveryAction.size() >= 1 && data.recoveryAction.size() <= 200 &&
+             data.attemptCount is int && data.attemptCount >= 0 && data.attemptCount <= 100 &&
+             data.latencyMs is int && data.latencyMs >= 0 && data.latencyMs <= 600000 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidChatMessage(data) {
+      return data.id is string && isValidId(data.id) &&
+             data.userId is string && data.userId == request.auth.uid &&
+             data.role is string && data.role in ['user', 'model'] &&
+             data.content is string && data.content.size() >= 1 && data.content.size() <= 20000 &&
+             data.modelId is string && data.modelId.size() >= 1 && data.modelId.size() <= 100 &&
+             data.agentPersona is string && data.agentPersona.size() >= 1 && data.agentPersona.size() <= 100 &&
+             data.sourcesSummary is string && data.sourcesSummary.size() <= 5000 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    match /users/{userId}/presets/{presetId} {
+      allow get: if isSignedIn() && request.auth.uid == userId && isValidId(userId) && isValidId(presetId) && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && request.auth.uid == userId && existing().userId == request.auth.uid;
+
+      allow create: if isSignedIn() &&
+                       request.auth.uid == userId &&
+                       isValidId(userId) &&
+                       isValidId(presetId) &&
+                       incoming().id == presetId &&
+                       incoming().keys().hasAll(['id', 'userId', 'name', 'description', 'gridColumns', 'gridRows', 'fitEntirePhone', 'proportionalZoom', 'masterAudioMuted', 'windowCount', 'windowsJson', 'createdAt', 'updatedAt']) &&
+                       incoming().keys().hasOnly(['id', 'userId', 'name', 'description', 'gridColumns', 'gridRows', 'fitEntirePhone', 'proportionalZoom', 'masterAudioMuted', 'windowCount', 'windowsJson', 'createdAt', 'updatedAt']) &&
+                       isValidPreset(incoming());
+
+      allow update: if isSignedIn() &&
+                       isValidPreset(incoming()) &&
+                       request.auth.uid == userId &&
+                       isValidId(userId) &&
+                       isValidId(presetId) &&
+                       incoming().id == existing().id &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['name', 'description', 'gridColumns', 'gridRows', 'fitEntirePhone', 'proportionalZoom', 'masterAudioMuted', 'windowCount', 'windowsJson', 'updatedAt']);
+
+      allow delete: if isSignedIn() && request.auth.uid == userId && isValidId(userId) && isValidId(presetId) && existing().userId == request.auth.uid;
+    }
+
+    match /users/{userId}/health_logs/{logId} {
+      allow get: if isSignedIn() && request.auth.uid == userId && isValidId(userId) && isValidId(logId) && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && request.auth.uid == userId && existing().userId == request.auth.uid;
+
+      allow create: if isSignedIn() &&
+                       request.auth.uid == userId &&
+                       isValidId(userId) &&
+                       isValidId(logId) &&
+                       incoming().id == logId &&
+                       incoming().keys().hasAll(['id', 'userId', 'windowId', 'windowTitle', 'streamUrl', 'status', 'reason', 'recoveryAction', 'attemptCount', 'latencyMs', 'createdAt', 'updatedAt']) &&
+                       incoming().keys().hasOnly(['id', 'userId', 'windowId', 'windowTitle', 'streamUrl', 'status', 'reason', 'recoveryAction', 'attemptCount', 'latencyMs', 'createdAt', 'updatedAt']) &&
+                       isValidHealthIncident(incoming());
+
+      allow update: if isSignedIn() &&
+                       isValidHealthIncident(incoming()) &&
+                       request.auth.uid == userId &&
+                       isValidId(userId) &&
+                       isValidId(logId) &&
+                       incoming().id == existing().id &&
+                       incoming().userId == existing().userId &&
+                       incoming().windowId == existing().windowId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['status', 'reason', 'recoveryAction', 'attemptCount', 'latencyMs', 'updatedAt']);
+
+      allow delete: if isSignedIn() && request.auth.uid == userId && isValidId(userId) && isValidId(logId) && existing().userId == request.auth.uid;
+    }
+
+    match /users/{userId}/chat_messages/{messageId} {
+      allow get: if isSignedIn() && request.auth.uid == userId && isValidId(userId) && isValidId(messageId) && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && request.auth.uid == userId && existing().userId == request.auth.uid;
+
+      allow create: if isSignedIn() &&
+                       request.auth.uid == userId &&
+                       isValidId(userId) &&
+                       isValidId(messageId) &&
+                       incoming().id == messageId &&
+                       incoming().keys().hasAll(['id', 'userId', 'role', 'content', 'modelId', 'agentPersona', 'sourcesSummary', 'createdAt', 'updatedAt']) &&
+                       incoming().keys().hasOnly(['id', 'userId', 'role', 'content', 'modelId', 'agentPersona', 'sourcesSummary', 'createdAt', 'updatedAt']) &&
+                       isValidChatMessage(incoming());
+
+      allow update: if isSignedIn() &&
+                       isValidChatMessage(incoming()) &&
+                       request.auth.uid == userId &&
+                       isValidId(userId) &&
+                       isValidId(messageId) &&
+                       incoming().id == existing().id &&
+                       incoming().userId == existing().userId &&
+                       incoming().role == existing().role &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['content', 'sourcesSummary', 'updatedAt']);
+
+      allow delete: if isSignedIn() && request.auth.uid == userId && isValidId(userId) && isValidId(messageId) && existing().userId == request.auth.uid;
+    }
+  }
+}

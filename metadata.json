@@ -1,0 +1,6 @@
+{
+  "name": "Streamsy",
+  "description": "Multi-stream emulator command matrix with preset manager, master audio control, background feed health monitor, cloud sync, and AI assistant.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

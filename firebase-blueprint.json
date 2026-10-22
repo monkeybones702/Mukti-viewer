@@ -1,0 +1,229 @@
+{
+  "entities": {
+    "CloudGridPreset": {
+      "title": "CloudGridPreset",
+      "description": "User-saved multi-stream grid configuration synced to Cloud Firestore.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the preset."
+        },
+        "userId": {
+          "type": "string",
+          "description": "UID of the authenticated Google user who owns this preset."
+        },
+        "name": {
+          "type": "string",
+          "description": "Display name of the grid preset (e.g., 4-Window Focus)."
+        },
+        "description": {
+          "type": "string",
+          "description": "Short description of the grid preset."
+        },
+        "gridColumns": {
+          "type": "integer",
+          "description": "Number of columns in the stream grid (1 to 5)."
+        },
+        "gridRows": {
+          "type": "integer",
+          "description": "Number of rows in the stream grid (1 to 10)."
+        },
+        "fitEntirePhone": {
+          "type": "boolean",
+          "description": "Whether windows scale to fit the full phone screen."
+        },
+        "proportionalZoom": {
+          "type": "boolean",
+          "description": "Whether aspect ratio lock is enabled for window zoom."
+        },
+        "masterAudioMuted": {
+          "type": "boolean",
+          "description": "Whether master audio is muted across all windows in this preset."
+        },
+        "windowCount": {
+          "type": "integer",
+          "description": "Number of stream windows stored in this preset."
+        },
+        "windowsJson": {
+          "type": "string",
+          "description": "Serialized configuration of the emulator stream windows."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the preset was created (FieldValue.serverTimestamp())."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the preset was last updated (FieldValue.serverTimestamp())."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "name",
+        "description",
+        "gridColumns",
+        "gridRows",
+        "fitEntirePhone",
+        "proportionalZoom",
+        "masterAudioMuted",
+        "windowCount",
+        "windowsJson",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "StreamHealthIncident": {
+      "title": "StreamHealthIncident",
+      "description": "Telemetry and auto-recovery log entry recorded by the background StreamHealthMonitorService when an emulator feed freezes or drops connection.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the health incident."
+        },
+        "userId": {
+          "type": "string",
+          "description": "UID of the authenticated Google user."
+        },
+        "windowId": {
+          "type": "string",
+          "description": "ID of the emulator stream window being monitored."
+        },
+        "windowTitle": {
+          "type": "string",
+          "description": "Title of the emulator stream window."
+        },
+        "streamUrl": {
+          "type": "string",
+          "description": "URL of the monitored emulator stream."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["HEALTHY", "FROZEN", "DROPPED", "RECOVERING", "RECOVERED"],
+          "description": "Current health status of the stream feed."
+        },
+        "reason": {
+          "type": "string",
+          "description": "Diagnostic cause of the freeze or dropped connection."
+        },
+        "recoveryAction": {
+          "type": "string",
+          "description": "Soft-refresh recovery action executed by the background service."
+        },
+        "attemptCount": {
+          "type": "integer",
+          "description": "Number of soft-refresh attempts performed."
+        },
+        "latencyMs": {
+          "type": "integer",
+          "description": "Measured heartbeat latency in milliseconds."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the incident was logged (FieldValue.serverTimestamp())."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the incident was last updated (FieldValue.serverTimestamp())."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "windowId",
+        "windowTitle",
+        "streamUrl",
+        "status",
+        "reason",
+        "recoveryAction",
+        "attemptCount",
+        "latencyMs",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "CloudChatMessage": {
+      "title": "CloudChatMessage",
+      "description": "Chat message in the Streamsy AI Command Assistant thread.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the chat message."
+        },
+        "userId": {
+          "type": "string",
+          "description": "UID of the authenticated Google user."
+        },
+        "role": {
+          "type": "string",
+          "enum": ["user", "model"],
+          "description": "Message author role."
+        },
+        "content": {
+          "type": "string",
+          "description": "Message text content."
+        },
+        "modelId": {
+          "type": "string",
+          "description": "Gemini model used (gemini-3.5-flash, gemini-3.1-pro-preview, or gemini-3.1-flash-lite-preview)."
+        },
+        "agentPersona": {
+          "type": "string",
+          "description": "Role/persona of the chatbot."
+        },
+        "sourcesSummary": {
+          "type": "string",
+          "description": "Search grounding citations summary if applicable."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the message was created (FieldValue.serverTimestamp())."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the message was updated (FieldValue.serverTimestamp())."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "role",
+        "content",
+        "modelId",
+        "agentPersona",
+        "sourcesSummary",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/presets/{presetId}": {
+      "schema": {
+        "$ref": "#/entities/CloudGridPreset"
+      },
+      "description": "Stores user-specific multi-stream grid presets."
+    },
+    "/users/{userId}/health_logs/{logId}": {
+      "schema": {
+        "$ref": "#/entities/StreamHealthIncident"
+      },
+      "description": "Stores per-user emulator feed health incidents and auto-soft-refresh recovery logs."
+    },
+    "/users/{userId}/chat_messages/{messageId}": {
+      "schema": {
+        "$ref": "#/entities/CloudChatMessage"
+      },
+      "description": "Stores per-user AI Command Assistant chat messages."
+    }
+  }
+}

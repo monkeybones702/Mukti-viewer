@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">Streamsy</string>
+    <string name="sign_in_with_google">Sign in with Google</string>
+    <string name="health_monitor_channel_name">Stream Health Monitor</string>
+    <string name="health_monitor_channel_desc">Monitors active emulator streams and auto-recovers frozen or dropped feeds</string>
+</resources>
